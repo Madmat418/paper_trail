@@ -237,12 +237,17 @@ module PaperTrail
       #  method to leverage an `after_update` callback anyways (likely for v3.1.0)
       def touch_with_version(name = nil)
         raise ActiveRecordError, "can not touch on a new record object" unless persisted?
-
-        attributes = timestamp_attributes_for_update_in_model
-        attributes << name if name
-        current_time = current_time_from_proper_timezone
-        attributes.each { |column| write_attribute(column, current_time) }
-        save!
+        object_attrs = object_attrs_for_paper_trail(item_before_change)
+          data = {
+            :event     => paper_trail_event,
+            :object    => self.class.paper_trail_version_class.object_col_is_json? ? object_attrs : PaperTrail.serializer.dump(object_attrs),
+            :whodunnit => PaperTrail.whodunnit
+          }
+        
+        data[:object_changes] = self.class.paper_trail_version_class.object_changes_col_is_json? ? changes_for_paper_trail :
+              PaperTrail.serializer.dump(changes_for_paper_trail)
+        
+        send(self.class.versions_association_name).create! merge_metadata(data)
       end
 
       private

@@ -243,6 +243,7 @@ module PaperTrail
         current_time = current_time_from_proper_timezone
         puts '!!!!!!!!!!!'
         puts attributes
+        puts paper_trail_event
         attributes.each { |column| write_attribute(column, current_time) }
         save!
       end

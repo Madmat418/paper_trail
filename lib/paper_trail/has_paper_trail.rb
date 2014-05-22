@@ -269,9 +269,11 @@ module PaperTrail
       def record_update
         
         if paper_trail_switched_on? && changed_notably?
+
+        if paper_trail_event[0] == 'shared'
           object_attrs = object_attrs_for_paper_trail(item_before_change)
           data = {
-            :event     => paper_trail_event || 'update',
+            :event     => paper_trail_event[1],
             :object    => self.class.paper_trail_version_class.object_col_is_json? ? object_attrs : PaperTrail.serializer.dump(object_attrs),
             :whodunnit => PaperTrail.whodunnit
           }
@@ -281,10 +283,10 @@ module PaperTrail
               PaperTrail.serializer.dump(changes_for_paper_trail)
           end
           send(self.class.versions_association_name).build merge_metadata(data)
-        elsif paper_trail_event[0]
+        elsif
           object_attrs = object_attrs_for_paper_trail(item_before_change)
           data = {
-            :event     => paper_trail_event[1],
+            :event     => paper_trail_event || 'update',
             :object    => self.class.paper_trail_version_class.object_col_is_json? ? object_attrs : PaperTrail.serializer.dump(object_attrs),
             :whodunnit => PaperTrail.whodunnit
           }

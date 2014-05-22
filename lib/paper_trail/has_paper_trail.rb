@@ -241,7 +241,8 @@ module PaperTrail
         attributes = timestamp_attributes_for_update_in_model
         attributes << name if name
         current_time = current_time_from_proper_timezone
-
+        puts '!!!!!!!!!!!'
+        puts attributes
         attributes.each { |column| write_attribute(column, current_time) }
         save!
       end

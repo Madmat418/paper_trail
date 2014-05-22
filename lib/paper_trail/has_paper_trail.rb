@@ -241,9 +241,6 @@ module PaperTrail
         attributes = timestamp_attributes_for_update_in_model
         attributes << name if name
         current_time = current_time_from_proper_timezone
-        puts '!!!!!!!!!!!'
-        puts attributes
-        puts paper_trail_event
         attributes.each { |column| write_attribute(column, current_time) }
         save!
       end
@@ -270,10 +267,24 @@ module PaperTrail
       end
 
       def record_update
+        
         if paper_trail_switched_on? && changed_notably?
           object_attrs = object_attrs_for_paper_trail(item_before_change)
           data = {
             :event     => paper_trail_event || 'update',
+            :object    => self.class.paper_trail_version_class.object_col_is_json? ? object_attrs : PaperTrail.serializer.dump(object_attrs),
+            :whodunnit => PaperTrail.whodunnit
+          }
+
+          if self.class.paper_trail_version_class.column_names.include?('object_changes')
+            data[:object_changes] = self.class.paper_trail_version_class.object_changes_col_is_json? ? changes_for_paper_trail :
+              PaperTrail.serializer.dump(changes_for_paper_trail)
+          end
+          send(self.class.versions_association_name).build merge_metadata(data)
+        elsif paper_trail_event[0]
+          object_attrs = object_attrs_for_paper_trail(item_before_change)
+          data = {
+            :event     => paper_trail_event[1],
             :object    => self.class.paper_trail_version_class.object_col_is_json? ? object_attrs : PaperTrail.serializer.dump(object_attrs),
             :whodunnit => PaperTrail.whodunnit
           }
